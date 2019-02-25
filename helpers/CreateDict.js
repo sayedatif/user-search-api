@@ -1,6 +1,7 @@
 const result = {};
 
-const populateNodes = (string, start, end, prefix, id, obj, keyword) => {
+const populateNodes = (data) => {
+	const { string, start, end, prefix, id, obj, keyword, key } = data;
 	for (let i = start; i < string.length; i++) {
 		const next = prefix + string[i]
 		// omit if substring is not part of actual string
@@ -9,12 +10,22 @@ const populateNodes = (string, start, end, prefix, id, obj, keyword) => {
 		}
 
 		if (end > 0 || next.length < 3) {
-				populateNodes(string, i + 1, end - 1, next, id, obj, keyword);
+				populateNodes({
+					string,
+					start: i + 1,
+					end: end - 1,
+					prefix: next,
+					id,
+					obj,
+					keyword,
+					key
+				});
 		} else {
 			// if key value not part of dictionary then create new object
 			if (!result[next]) {
 				obj.order = string.indexOf(keyword);
 				obj.score = 10 - obj.order;
+				obj.matchOn = key;
 				const objToPush = {
 					suffix: next,
 					objects: [obj],
@@ -29,6 +40,7 @@ const populateNodes = (string, start, end, prefix, id, obj, keyword) => {
 				if (result[next].objects && result[next].objects.findIndex(item => item.id === id) === -1) {
 					obj.order = string.indexOf(keyword);
 					obj.score = 10 - obj.order;
+					obj.matchOn = key;
 					result[next].objects.push(obj);
 				}
 			}
@@ -52,7 +64,16 @@ CreateDict = (data, keyword) => {
 				}
 				// loop over string to get all possibilites of a string
 				for (let i = 0; i < item[key].length; i++) {
-					populateNodes(item[key].toLowerCase(), 0, i, '', index, item, keyword);
+					populateNodes({
+						string: item[key].toLowerCase(),
+						start: 0,
+						end: i,
+						prefix: '',
+						id: index,
+						obj: item,
+						keyword,
+						key
+					});
 				}
 			}
 		})
